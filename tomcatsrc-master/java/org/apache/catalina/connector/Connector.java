@@ -44,10 +44,14 @@ import java.util.HashSet;
  * @author Remy Maucherat
  *
  * 用于将请求封装成为 Request、Response
- *
  * 同时实现了：http 、tcp/ip 协议
- *
  * 底层使用的 socket 通讯模型
+ *
+ * 核心功能：
+ * （1）接受请求：监听服务器端口，读取来自客户端的请求
+ * （2）解析请求：将请求数据按照指定协议进行解析
+ * （3）匹配处理请求：根据请求地址匹配正确的容器进行处理
+ * （4）返回响应：将相应返回给客户端
  *
  * Connector 的生命周期是在 Service 中调用的
  */

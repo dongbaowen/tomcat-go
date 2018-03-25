@@ -42,6 +42,14 @@ import org.apache.catalina.startup.Catalina;
  * register the (singleton) instance with the <code>ServerFactory</code>
  * class in its constructor(s).
  *
+ * 直译：
+ * Server 元素代表着整个 Catalina servlet容器。它的属性代表了整个servlet容器的所有特征。
+ * 一个 Server 包含了一个或者多个 Service。
+ * 通常来说，Server 接口的实现类一般也实现了 Lifecycle 接口，比如 start()/stop()方法在调用的时候。
+ * 在这之间，Server 的实现必须在 port 属性上打开一个 ServerSocket。当接收到一个连接时，第一条命令
+ * 先去解析、与shutdown命令进行比较，如果命令匹配，则启动服务器关闭。
+ * Server 的具体实现类应该通过 ServerFactory 类在它（ServerFactory）的构造器中实现单例
+ *
  * @author Craig R. McClanahan
  */
 public interface Server extends Lifecycle {

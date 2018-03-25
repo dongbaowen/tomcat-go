@@ -37,9 +37,13 @@ package org.apache.catalina;
  * @author Craig R. McClanahan
  * @author Peter Donald
  *
- * 实现分为：（1）、生命周期管理；（2）、处理请求  两部都会走Pipeline的责任链处理模式
+ * 实现分为：
+ * （1）、生命周期管理；
+ * （2）、处理请求  两部都会走Pipeline的责任链处理模式
  *
  * 只要一个默认的实现类：StandardPipeline
+ *
+ * 核心作用：位于两个 Container 之间，用于上下层容器相互传递 request 与 reponse。
  *
  * @see org.apache.catalina.core.StandardPipeline
  */

@@ -30,6 +30,8 @@ import org.apache.catalina.connector.Connector;
  * completely independent of each other and share only the basic JVM facilities
  * and classes on the system class path.
  *
+ * 可以理解为 Service 的作用是维护"多个某一类Connector"和"专门处理来自这些 Connector 的请求的Container"的映射关系
+ *
  * @author Craig R. McClanahan
  */
 public interface Service extends Lifecycle {

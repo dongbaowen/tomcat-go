@@ -16,6 +16,13 @@
  */
 package org.apache.catalina.startup;
 
+import org.apache.catalina.Globals;
+import org.apache.catalina.security.SecurityClassLoad;
+import org.apache.catalina.startup.ClassLoaderFactory.Repository;
+import org.apache.catalina.startup.ClassLoaderFactory.RepositoryType;
+import org.apache.juli.logging.Log;
+import org.apache.juli.logging.LogFactory;
+
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -25,13 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.apache.catalina.Globals;
-import org.apache.catalina.security.SecurityClassLoad;
-import org.apache.catalina.startup.ClassLoaderFactory.Repository;
-import org.apache.catalina.startup.ClassLoaderFactory.RepositoryType;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-
 /**
  * Bootstrap loader for Catalina.  This application constructs a class loader
  * for use in loading the Catalina internal classes (by accumulating all of the
@@ -40,6 +40,15 @@ import org.apache.juli.logging.LogFactory;
  * roundabout approach is to keep the Catalina internal classes (and any
  * other classes they depend on, such as an XML parser) out of the system
  * class path and therefore not visible to application level classes.
+ *
+ * 直译：
+ * Bootstrap是{@link Catalina}的引导程序，这个应用构造了一个类加载器，这个类加载器是用于加载Catalina所有
+ * 的内部类（所有"catalina.home"下的“server”文件夹下的jar文件），和启动容器的常规执行任务。
+ * 这样做的目的，是为了让Catalina的内部类（包括这些内部类的依赖类，例如XML文件解析器）都脱离于
+ * 系统的 classpath 环境，因此对应用程序级别类不可见。
+ *
+ * 语义理解：
+ * Bootstrap是一切的起源，用于加载Catalina所有使用到的类。它对应用程序级别的类不可见。
  *
  * @author Craig R. McClanahan
  * @author Remy Maucherat
@@ -94,11 +103,11 @@ public final class Bootstrap {
 
     private ClassLoader createClassLoader(String name, ClassLoader parent)
         throws Exception {
-
+        //获取Catalina下面所有的类路径 ${catalina.base}/lib/*jar,${catalina.home}/lib/*.jar
         String value = CatalinaProperties.getProperty(name + ".loader");
         if ((value == null) || (value.equals("")))
             return parent;
-
+        //将${catalina.base}与${catalina.home}置换为系统磁盘中Catalina位置(D:\Projects\tomcat-go\tomcat-go\tomcatsrc-master/lib,D:\Projects\tomcat-go\tomcat-go\tomcatsrc-master/lib/*.jar)
         value = replace(value);
 
         List<Repository> repositories = new ArrayList<Repository>();
@@ -123,16 +132,12 @@ public final class Bootstrap {
 
             // Local repository
             if (repository.endsWith("*.jar")) {
-                repository = repository.substring
-                    (0, repository.length() - "*.jar".length());
-                repositories.add(
-                        new Repository(repository, RepositoryType.GLOB));
+                repository = repository.substring(0, repository.length() - "*.jar".length());
+                repositories.add(new Repository(repository, RepositoryType.GLOB));
             } else if (repository.endsWith(".jar")) {
-                repositories.add(
-                        new Repository(repository, RepositoryType.JAR));
+                repositories.add(new Repository(repository, RepositoryType.JAR));
             } else {
-                repositories.add(
-                        new Repository(repository, RepositoryType.DIR));
+                repositories.add(new Repository(repository, RepositoryType.DIR));
             }
         }
 
@@ -198,7 +203,7 @@ public final class Bootstrap {
 
 //        初始化 classLoader
         initClassLoaders();
-
+        //设置catalinaLoader为主线程的类加载器（实际上这里的catalinaLoader就是commonLoader）
         Thread.currentThread().setContextClassLoader(catalinaLoader);
 
         SecurityClassLoad.securityClassLoad(catalinaLoader);
@@ -223,7 +228,7 @@ public final class Bootstrap {
         Class<?> paramTypes[] = new Class[1];
         paramTypes[0] = Class.forName("java.lang.ClassLoader");
         Object paramValues[] = new Object[1];
-        paramValues[0] = sharedLoader;
+        paramValues[0] = sharedLoader;      // TODO: 2018/3/14 为什么这里不直接调用catalina的setParentClassLoader方法，而去使用反射去调用
         Method method =
             startupInstance.getClass().getMethod(methodName, paramTypes);
         method.invoke(startupInstance, paramValues);
@@ -236,6 +241,7 @@ public final class Bootstrap {
 
     /**
      * Load daemon.
+     * 调用Catalina实例的load方法，将主函数中的参数传递给Catalina实例
      */
     private void load(String[] arguments)
         throws Exception {
@@ -254,7 +260,7 @@ public final class Bootstrap {
             param[0] = arguments;
         }
 
-        //catalinaDaemon  对象为 Catalina  实例  执行的为 catalina 的 stop 方法
+        //catalinaDaemon  对象为 Catalina  实例  执行的为 catalina 的 load 方法 todo 为什么要用反射的形式去调用?
         Method method =
             catalinaDaemon.getClass().getMethod(methodName, paramTypes);
         if (log.isDebugEnabled())
@@ -296,13 +302,13 @@ public final class Bootstrap {
 
 
     /**
-     * Start the Catalina daemon.
+     * Start the Catalina daemon.启动Catalina实例
      */
     public void start()
         throws Exception {
         if( catalinaDaemon==null ) init();
 
-        //catalinaDaemon  对象为 Catalina  实例
+        //catalinaDaemon  对象为 Catalina  实例, 调用Catalina实例的start方法
         Method method = catalinaDaemon.getClass().getMethod("start", (Class [] )null);
 
         //执行的为 catalina 的 start方法
@@ -375,8 +381,8 @@ public final class Bootstrap {
         paramTypes[0] = Boolean.TYPE;
         Object paramValues[] = new Object[1];
         paramValues[0] = Boolean.valueOf(await);
-
-        //catalinaDaemon  对象为 Catalina  实例  执行的为 catalina 的 stop 方法
+        // TODO: 2018/3/14 这里为啥用反射的形式去调用
+        //catalinaDaemon  对象为 Catalina  实例  执行的为 catalina 的 setAwait 方法
         Method method =
             catalinaDaemon.getClass().getMethod("setAwait", paramTypes);
         method.invoke(catalinaDaemon, paramValues);
@@ -428,6 +434,14 @@ public final class Bootstrap {
                 t.printStackTrace();
                 return;
             }
+
+            //到这一步，这个bootstrap实例已经有了四个属性
+            /**
+             * 1、catalinaDaemon
+             * 2、commonClassLoader {URLClassLoader}
+             * 3、shardClassLoader   {URLClassLoader}
+             * 4、catalinaClassLoader {URLClassLoader}
+             */
             daemon = bootstrap;
         } else {
             // When running as a service the call to stop will be on a new
@@ -435,7 +449,7 @@ public final class Bootstrap {
             // a range of class not found exceptions.
             Thread.currentThread().setContextClassLoader(daemon.catalinaLoader);
         }
-
+        // TODO: 2018/3/14 默认值是start，不就是只可能会执行start吗？难道还要执行其他命令的情况?
         try {
             String command = "start";
             if (args.length > 0) {
@@ -512,8 +526,7 @@ public final class Bootstrap {
 
         if (System.getProperty(Globals.CATALINA_HOME_PROP) != null)
             return;
-        File bootstrapJar =
-            new File(System.getProperty("user.dir"), "bootstrap.jar");
+        File bootstrapJar = new File(System.getProperty("user.dir"), "bootstrap.jar");
         if (bootstrapJar.exists()) {
             try {
                 System.setProperty

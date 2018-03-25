@@ -149,7 +149,7 @@ public final class ClassLoaderFactory {
      *                     the class loader.
      * @param parent Parent class loader for the new class loader, or
      *  <code>null</code> for the system class loader.
-     *
+     * 加载所有的类（${catalina.home}/lib/*.jar）
      * @exception Exception if an error occurs constructing the class loader
      */
     public static ClassLoader createClassLoader(List<Repository> repositories,
