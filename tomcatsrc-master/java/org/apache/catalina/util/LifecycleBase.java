@@ -32,7 +32,7 @@ import org.apache.tomcat.util.res.StringManager;
  * state transition rules for {@link Lifecycle#start()} and
  * {@link Lifecycle#stop()}
  *
- * 所有实现了生命周期的组件 都直接 or  间接的继承了 LifecycleBase 这个模板类
+ * 所有实现了生命周期的组件 都直接 or 间接的继承了 LifecycleBase 这个模板类
  */
 public abstract class LifecycleBase implements Lifecycle {
 
