@@ -88,6 +88,9 @@ public class HostRuleSet extends RuleSetBase {
     @Override
     public void addRuleInstances(Digester digester) {
 
+        /**
+         * step 1：创建Host实例
+         */
         digester.addObjectCreate(prefix + "Host",
                                  "org.apache.catalina.core.StandardHost",
                                  "className");
@@ -105,6 +108,9 @@ public class HostRuleSet extends RuleSetBase {
         digester.addCallMethod(prefix + "Host/Alias",
                                "addAlias", 0);
 
+        /**
+         * step 2：为Host添加集群
+         */
         //Cluster configuration start
         digester.addObjectCreate(prefix + "Host/Cluster",
                                  null, // MUST be specified in the element
@@ -115,6 +121,9 @@ public class HostRuleSet extends RuleSetBase {
                             "org.apache.catalina.Cluster");
         //Cluster configuration end
 
+        /**
+         * step 3：为Host添加生命周期
+         */
         digester.addObjectCreate(prefix + "Host/Listener",
                                  null, // MUST be specified in the element
                                  "className");
@@ -123,8 +132,10 @@ public class HostRuleSet extends RuleSetBase {
                             "addLifecycleListener",
                             "org.apache.catalina.LifecycleListener");
 
+        /**
+         * step 4：为Host添加安全配置
+         */
         digester.addRuleSet(new RealmRuleSet(prefix + "Host/"));
-
         digester.addObjectCreate(prefix + "Host/Valve",
                                  null, // MUST be specified in the element
                                  "className");

@@ -87,7 +87,10 @@ public class EngineRuleSet extends RuleSetBase {
      */
     @Override
     public void addRuleInstances(Digester digester) {
-        
+
+        /**
+         * step 1：创建Engine实例
+         */
         digester.addObjectCreate(prefix + "Engine",
                                  "org.apache.catalina.core.StandardEngine",
                                  "className");
@@ -100,6 +103,9 @@ public class EngineRuleSet extends RuleSetBase {
                             "setContainer",
                             "org.apache.catalina.Container");
 
+        /**
+         * step 2：为Engine添加集群配置
+         */
         //Cluster configuration start
         digester.addObjectCreate(prefix + "Engine/Cluster",
                                  null, // MUST be specified in the element
@@ -110,6 +116,9 @@ public class EngineRuleSet extends RuleSetBase {
                             "org.apache.catalina.Cluster");
         //Cluster configuration end
 
+        /**
+         * step 3：为Engine添加生命周期监听器
+         */
         digester.addObjectCreate(prefix + "Engine/Listener",
                                  null, // MUST be specified in the element
                                  "className");
@@ -118,7 +127,9 @@ public class EngineRuleSet extends RuleSetBase {
                             "addLifecycleListener",
                             "org.apache.catalina.LifecycleListener");
 
-
+        /**
+         * step 4：为Engine添加安全配置
+         */
         digester.addRuleSet(new RealmRuleSet(prefix + "Engine/"));
 
         digester.addObjectCreate(prefix + "Engine/Valve",
@@ -130,6 +141,5 @@ public class EngineRuleSet extends RuleSetBase {
                             "org.apache.catalina.Valve");
 
     }
-
 
 }

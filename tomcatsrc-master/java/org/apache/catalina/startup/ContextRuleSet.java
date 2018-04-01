@@ -109,11 +109,17 @@ public class ContextRuleSet extends RuleSetBase {
     @Override
     public void addRuleInstances(Digester digester) {
 
+        /**
+         * step 1：Context实例化
+         */
+        //如果server.xml中配置了Context，则需要创建Context实例
         if (create) {
             digester.addObjectCreate(prefix + "Context",
                     "org.apache.catalina.core.StandardContext", "className");
             digester.addSetProperties(prefix + "Context");
-        } else {
+        }
+        //通过HostConfig自动创建Context，仅需要解析子节点即可
+        else {
             digester.addRule(prefix + "Context", new SetContextPropertiesRule());
         }
 
@@ -129,6 +135,9 @@ public class ContextRuleSet extends RuleSetBase {
         digester.addCallMethod(prefix + "Context/InstanceListener",
                                "addInstanceListener", 0);
 
+        /**
+         * step 2：为Context添加生命周期监听器
+         */
         digester.addObjectCreate(prefix + "Context/Listener",
                                  null, // MUST be specified in the element
                                  "className");
@@ -137,6 +146,9 @@ public class ContextRuleSet extends RuleSetBase {
                             "addLifecycleListener",
                             "org.apache.catalina.LifecycleListener");
 
+        /**
+         * step 3：为Context添加类加载器
+         */
         digester.addObjectCreate(prefix + "Context/Loader",
                             "org.apache.catalina.loader.WebappLoader",
                             "className");
@@ -145,6 +157,9 @@ public class ContextRuleSet extends RuleSetBase {
                             "setLoader",
                             "org.apache.catalina.Loader");
 
+        /**
+         * step 4：为Context添加会话管理器
+         */
         digester.addObjectCreate(prefix + "Context/Manager",
                                  "org.apache.catalina.session.StandardManager",
                                  "className");
@@ -169,6 +184,9 @@ public class ContextRuleSet extends RuleSetBase {
                             "setSessionIdGenerator",
                             "org.apache.catalina.SessionIdGenerator");
 
+        /**
+         * step 5：为Context添加初始化参数
+         */
         digester.addObjectCreate(prefix + "Context/Parameter",
                                  "org.apache.catalina.deploy.ApplicationParameter");
         digester.addSetProperties(prefix + "Context/Parameter");
@@ -178,6 +196,9 @@ public class ContextRuleSet extends RuleSetBase {
 
         digester.addRuleSet(new RealmRuleSet(prefix + "Context/"));
 
+        /**
+         * step 6：为Context添加安全配置以及Web资源配置
+         */
         digester.addObjectCreate(prefix + "Context/Resources",
                                  "org.apache.naming.resources.FileDirContext",
                                  "className");
@@ -186,6 +207,9 @@ public class ContextRuleSet extends RuleSetBase {
                             "setResources",
                             "javax.naming.directory.DirContext");
 
+        /**
+         * step 7：为Context添加资源链接
+         */
         digester.addObjectCreate(prefix + "Context/ResourceLink",
                 "org.apache.catalina.deploy.ContextResourceLink");
         digester.addSetProperties(prefix + "Context/ResourceLink");
@@ -193,6 +217,9 @@ public class ContextRuleSet extends RuleSetBase {
                 new SetNextNamingRule("addResourceLink",
                         "org.apache.catalina.deploy.ContextResourceLink"));
 
+        /**
+         * step 8：为Context添加Valve
+         */
         digester.addObjectCreate(prefix + "Context/Valve",
                                  null, // MUST be specified in the element
                                  "className");
@@ -201,6 +228,9 @@ public class ContextRuleSet extends RuleSetBase {
                             "addValve",
                             "org.apache.catalina.Valve");
 
+        /**
+         * step 9：为Context添加守护资源配置
+         */
         digester.addCallMethod(prefix + "Context/WatchedResource",
                                "addWatchedResource", 0);
 
